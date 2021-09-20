@@ -5,6 +5,7 @@ import java.util.*;
 public class Main {
 
     public static void main(String[] args) {
+        boolean cycle = true;
         Scanner scanner = new Scanner(System.in);
         String input;
 
@@ -22,56 +23,55 @@ public class Main {
                 "!! - повтори последнюю команду\n" +
                 "0 - выход\n");
 
-        while (true) {
+        while (cycle) {
 
-//            System.out.println("Номер текущей команды: " + (curCommand + 1));
-//            System.out.println("Всего команд: " + commands.size());
+            System.out.println("Номер текущей команды: " + (curCommand + 1));
+            System.out.println("Всего команд: " + commands.size());
 
             System.out.println("Введите команду:");
             input = scanner.nextLine();
+            FrogCommand cmd = null;
+            int steps;
 
-            if (input.equals("0")) break;
-            if (input.equals("<<")/*пользователь хочет отменить действие*/) {
-                if (curCommand < 0) {
-                    System.out.println("Нечего отменять!");
-                } else {
-                    commands.get(curCommand).undo();
-                    curCommand--;
-                }
-            } else if (input.equals(">>")/*пользователь хочет повторить действие*/) {
-                if (curCommand == commands.size() - 1) {
-                    System.out.println("Нечего повторять!");
-                } else {
-                    curCommand++;
-                    commands.get(curCommand).doIt();
-                }
-            } else { //пользователь ввёл новое движение для лягушки
-                if (curCommand != commands.size() - 1) {
-                    //удаляем все команды которые были отменены
-                    Iterator<FrogCommand> commandIterator = commands.iterator();
-                    while (commandIterator.hasNext()) {
-                        FrogCommand frogCommands = commandIterator.next();
-                        if (commands.indexOf(frogCommands) > curCommand) {
-                            commandIterator.remove();
-                        }
+            switch (input) {
+                case "0":
+                    cycle = false;
+                    System.out.println("Game over! Bye!");
+                    break;
+                case "<<":
+                    if (curCommand < 0) {
+                        System.out.println("Нечего отменять!");
+                    } else {
+                        commands.get(curCommand).undo();
+                        curCommand--;
                     }
-                }
-
-                FrogCommand cmd;
-                if (input.equals("!!")) {
+                    break;
+                case ">>":
+                    if (curCommand == commands.size() - 1) {
+                        System.out.println("Нечего повторять!");
+                    } else {
+                        curCommand++;
+                        commands.get(curCommand).doIt();
+                    }
+                    break;
+                case "!!":
                     if (curCommand == -1) {
                         System.out.println("Ещё не было других команд!");
-                        continue;
+                    } else {
+                        cmd = commands.get(curCommand);
                     }
-                    cmd = commands.get(curCommand);
-                } else {
-                    cmd = FrogCommands.jumpCommand(frog, Integer.parseInt(input));
-                }
-
-                if (cmd.doIt()) {
-                    curCommand++;
-                    commands.add(cmd);
-                }
+                default:
+                    if (input.startsWith("-")) {
+                        steps = Integer.parseInt(input.substring(1));
+                        cmd = FrogCommands.jumpLeftCommand(frog, steps);
+                    } else if (input.startsWith("+")) {
+                        steps = Integer.parseInt(input.substring(1));
+                        cmd = FrogCommands.jumpRightCommand(frog, steps);
+                    }
+                    if (cmd != null && cmd.doIt()) {
+                        curCommand++;
+                        commands.add(cmd);
+                    }
             }
         }
     }
